@@ -98,8 +98,14 @@ func generateHTML(sites []HatsSite, w io.Writer) error {
 	</head>
 	<body>
 		<h1>{n}hats.com domains</h1>
+		<h3>Summary</h3>
+		<ol>
+			{{range .}}
+			<li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Registered since TODO</li>
+			{{end}}
+		</ol>
 		{{range .}}
-		<h3>{{.DomainName}}</h3>
+		<h3 id="{{.DomainName}}">{{.DomainName}}</h3>
 		<dl>
 			<dt>Fetched</dt>
 			<dd>{{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}</dd>
