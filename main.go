@@ -102,15 +102,15 @@ func generateHTML(sites []HatsSite, w io.Writer) error {
 		<h3>{{.DomainName}}</h3>
 		<dl>
 			<dt>Fetched</dt>
-			<dd>{{.FetchTime}}</dd>
+			<dd>{{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}</dd>
 			<dt>Title</dt>
 			<dd>{{.Title}}</dd>
 			<dt>Owner</dt>
 			<dd>{{.Owner}}</dd>
 			<dt>Since</dt>
-			<dd>{{.Since}}</dd>
+			<dd>{{.Since.Format "Mon Jan 2 2006" }}</dd>
 		</dl>
-		<img src="{{.ScreenshotURL}}" alt="screenshot of {{.DomainName}} as of {{.FetchTime}}">
+		<img src="{{.ScreenshotURL}}" alt="screenshot of {{.DomainName}} as of {{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}">
 		{{end}}
 	</body>
 	</html>`)
