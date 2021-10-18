@@ -26,6 +26,7 @@ done
 */
 
 import (
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"html/template"
@@ -42,7 +43,7 @@ type HatsSite struct {
 	DomainName    string
 	Owner         string
 	Since         time.Time
-	ScreenshotURL string
+	ScreenshotURL template.URL
 	Title         string
 	FetchTime     time.Time
 	HTTPOpen      bool
@@ -71,7 +72,7 @@ func getSites(largest int, wd selenium.WebDriver) (sites []HatsSite, err error) 
 		sites = append(sites, HatsSite{
 			DomainName:    domainName,
 			Owner:         "unknown",
-			ScreenshotURL: string(screenshot),
+			ScreenshotURL: template.URL(fmt.Sprintf("data:image/png;base64,%v", base64.StdEncoding.EncodeToString(screenshot))),
 			Title:         title,
 			FetchTime:     time.Now(),
 			HTTPOpen:      false, // TODO
