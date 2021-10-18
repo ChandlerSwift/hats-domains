@@ -91,8 +91,9 @@ func generateHTML(sites []HatsSite, w io.Writer) error {
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>{n}hats.com domains</title>
 		<style>
-			body { max-width: 800px; font-family: sans-serif; }
+			body { max-width: 800px; font-family: sans-serif; margin: auto; }
 			dt { font-weight: bold; }
+			img { max-width: 100%; }
 		</style>
 	</head>
 	<body>
