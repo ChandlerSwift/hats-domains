@@ -126,25 +126,23 @@ func main() {
 	flag.Parse()
 
 	const (
-		// These paths will be different on your system.
-		seleniumPath    = "deps/selenium-server-standalone-3.141.59.jar"
 		geckoDriverPath = "deps/geckodriver"
-		seleniumPort    = 8080
+		geckoDriverPort = 8080
 	)
+
 	opts := []selenium.ServiceOption{
-		selenium.StartFrameBuffer(),           // Start an X frame buffer for the browser to run in.
-		selenium.GeckoDriver(geckoDriverPath), // Specify the path to GeckoDriver in order to use Firefox.
+		selenium.StartFrameBuffer(),
 		selenium.Output(nil),
 	}
 	selenium.SetDebug(true)
-	service, err := selenium.NewSeleniumService(seleniumPath, seleniumPort, opts...)
+
+	service, err := selenium.NewGeckoDriverService(geckoDriverPath, geckoDriverPort, opts...)
 	if err != nil {
-		panic(err) // panic is used only as an example and is not otherwise recommended.
+		panic(err)
 	}
 	defer service.Stop()
-	// Connect to the WebDriver instance running locally.
-	caps := selenium.Capabilities{"browserName": "firefox"}
-	wd, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", seleniumPort))
+
+	wd, err := selenium.NewRemote(nil, fmt.Sprintf("http://localhost:%d", geckoDriverPort))
 	if err != nil {
 		panic(err)
 	}
