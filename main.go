@@ -130,6 +130,7 @@ func main() {
 	serve := flag.Bool("serve", false, "Serve HTTP rather than writing a file")
 	filename := flag.String("path", "index.html", "Output filename (if -serve=false, default)")
 	port := flag.Int("port", 8080, "Port to serve on")
+	debug := flag.Bool("debug", false, "Enable debug logging for the selenium package")
 	largest := flag.Int("largest", 50, "largest n for {n}hats.com")
 	flag.Parse()
 
@@ -142,7 +143,7 @@ func main() {
 		selenium.StartFrameBuffer(),
 		selenium.Output(nil),
 	}
-	selenium.SetDebug(true)
+	selenium.SetDebug(*debug)
 
 	service, err := selenium.NewGeckoDriverService(geckoDriverPath, geckoDriverPort, opts...)
 	if err != nil {
