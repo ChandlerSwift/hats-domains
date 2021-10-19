@@ -8,7 +8,8 @@
     <style>
         body { max-width: 800px; font-family: sans-serif; margin: auto; }
         dt { font-weight: bold; }
-        img { max-width: 100%; }
+        img { max-width: 100%; box-shadow: 0 0 10px 10px lightgray; }
+        img:hover { box-shadow: 0 0 10px 10px darkgray}
         h3 { margin-top: 100px; }
         * { line-height: 1.5em; }
     </style>
@@ -46,7 +47,9 @@
         {{end}}
     </dl>
     {{if .ScreenshotURL}}
-    <img src="{{.ScreenshotURL}}" alt="screenshot of {{.DomainName}} as of {{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}">
+    <a href="http://{{.DomainName}}">
+        <img src="{{.ScreenshotURL}}" alt="screenshot of {{.DomainName}} as of {{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}">
+    </a>
     {{end}}
     {{end}}
 </body>
