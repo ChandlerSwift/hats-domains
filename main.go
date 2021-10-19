@@ -36,30 +36,58 @@ import (
 	"os"
 	"time"
 
+	"github.com/likexian/whois"
+	whoisparser "github.com/likexian/whois-parser"
 	"github.com/tebeka/selenium"
 )
 
 type HatsSite struct {
 	DomainName    string
-	Owner         string
-	Since         time.Time
+	Available     bool
+	FetchTime     time.Time
+	DomainInfo    *whoisparser.Domain
+	Registrar     *whoisparser.Contact
+	Registrant    *whoisparser.Contact
 	ScreenshotURL template.URL
 	Title         string
-	FetchTime     time.Time
 	HTTPOpen      bool
 	HTTPSOpen     bool
 }
 
 func getSites(largest int, wd selenium.WebDriver) (sites []HatsSite, err error) {
+	// TODO: 1hat.com 0hats.com, hats.com; possibly onehat.com, twohats.com, etc
 	for i := 2; i <= largest; i++ {
-		domainName := fmt.Sprintf("%vhats.com", i)
+		hatsSite := HatsSite{
+			DomainName: fmt.Sprintf("%dhats.com", i),
+			FetchTime:  time.Now(),
+		}
+		log.Printf("Retrieving info for %v\n", hatsSite.DomainName)
 
-		err := wd.Get(fmt.Sprintf("http://%v/", domainName))
+		// Check if domain is registered
+		query_result, err := whois.Whois(hatsSite.DomainName)
+		if err != nil {
+			return sites, err
+		}
+		result, err := whoisparser.Parse(query_result)
+		if err == whoisparser.ErrNotFoundDomain {
+			hatsSite.Available = true
+			sites = append(sites, hatsSite)
+			continue
+		} else if err != nil {
+			return sites, err
+		}
+		hatsSite.Available = false
+		hatsSite.DomainInfo = result.Domain
+		hatsSite.Registrar = result.Registrar
+		hatsSite.Registrant = result.Registrant
+
+		// Get web page, take screenshot
+		err = wd.Get(fmt.Sprintf("http://%v/", hatsSite.DomainName))
 		if err != nil {
 			return sites, err
 		}
 
-		title, err := wd.Title()
+		hatsSite.Title, err = wd.Title()
 		if err != nil {
 			return sites, err
 		}
@@ -68,22 +96,18 @@ func getSites(largest int, wd selenium.WebDriver) (sites []HatsSite, err error) 
 		if err != nil {
 			return sites, err
 		}
+		hatsSite.ScreenshotURL = template.URL(fmt.Sprintf("data:image/png;base64,%v", base64.StdEncoding.EncodeToString(screenshot)))
 
-		sites = append(sites, HatsSite{
-			DomainName:    domainName,
-			Owner:         "unknown",
-			ScreenshotURL: template.URL(fmt.Sprintf("data:image/png;base64,%v", base64.StdEncoding.EncodeToString(screenshot))),
-			Title:         title,
-			FetchTime:     time.Now(),
-			HTTPOpen:      false, // TODO
-			HTTPSOpen:     false, // TODO
-		})
+		sites = append(sites, hatsSite)
 	}
 	return sites, nil
 }
 
 func generateHTML(sites []HatsSite, w io.Writer) error {
-	tmpl, err := template.New("main").Parse(`<!DOCTYPE html>
+	funcs := template.FuncMap{
+		"parseTime": func(s string) time.Time { time, _ := time.Parse(time.RFC3339, s); return time },
+	}
+	tmpl, err := template.New("main").Funcs(funcs).Parse(`<!DOCTYPE html>
 	<html lang="en">
 	<head>
 		<meta charset="UTF-8">
@@ -100,9 +124,13 @@ func generateHTML(sites []HatsSite, w io.Writer) error {
 		<h1>{n}hats.com domains</h1>
 		<h3>Summary</h3>
 		<ol>
-			{{range .}}
-			<li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Registered since TODO</li>
+		{{range .}}
+			{{if .Available}}
+			<li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Available!</li>
+			{{else}}
+			<li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Registered since {{(parseTime .DomainInfo.CreatedDate).Format "Mon Jan 2 2006" }}</li>
 			{{end}}
+		{{end}}
 		</ol>
 		{{range .}}
 		<h3 id="{{.DomainName}}">{{.DomainName}}</h3>
@@ -112,9 +140,11 @@ func generateHTML(sites []HatsSite, w io.Writer) error {
 			<dt>Title</dt>
 			<dd>{{.Title}}</dd>
 			<dt>Owner</dt>
-			<dd>{{.Owner}}</dd>
+			<dd><a href="mailto:{{.Registrant.Email}}">{{.Registrant.Name}} &lt;{{.Registrant.Email}}&gt</a></dd>
+			{{with .DomainInfo.CreatedDate}}
 			<dt>Since</dt>
-			<dd>{{.Since.Format "Mon Jan 2 2006" }}</dd>
+			<dd>{{(parseTime .).Format "Mon Jan 2 2006" }}</dd>
+			{{end}}
 		</dl>
 		<img src="{{.ScreenshotURL}}" alt="screenshot of {{.DomainName}} as of {{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}">
 		{{end}}
