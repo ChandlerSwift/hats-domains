@@ -147,7 +147,7 @@ func main() {
 
 	const (
 		geckoDriverPath = "deps/geckodriver"
-		geckoDriverPort = 8080
+		geckoDriverPort = 8081
 	)
 
 	opts := []selenium.ServiceOption{
@@ -170,12 +170,12 @@ func main() {
 
 	if *serve {
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			// err := generateHTML(w, *largest, wd)
-			// if err != nil {
-			// 	w.Write([]byte(err.Error()))
-			// }
+			err = generateHTML(getSites(*largest, wd), w)
+			if err != nil {
+				w.Write([]byte(err.Error()))
+			}
 		})
-		fmt.Printf("Serving on %v\n", port)
+		fmt.Printf("Serving on %v\n", *port)
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", *port), nil))
 	} else {
 		file, err := os.Create(*filename)
