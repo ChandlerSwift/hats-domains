@@ -11,22 +11,44 @@
         img { max-width: 100%; box-shadow: 0 0 10px 10px lightgray; }
         img:hover { box-shadow: 0 0 10px 10px darkgray}
         h3 { margin-top: 100px; }
+        .errors { padding: 0.5rem; border: 1px solid #f5c6cb; color: #721c24; background: #f8d7da; }
         * { line-height: 1.5em; }
     </style>
 </head>
 <body>
     <h1>{n}hats.com domains</h1>
+    {{ $errors := false -}}
+    {{- range . -}}
+        {{- with .Error -}}
+        {{- $errors = true -}}
+        {{- end -}}
+    {{- end -}}
+    {{- if $errors -}}
+    <div class="errors">
+        <h4>Errors occurred during processing</h3>
+        <ol>
+        {{- range . -}}
+            {{- if .Error }}
+            <li>{{.DomainName}}: {{.Error}}</li>
+            {{ end -}}
+        {{- end -}}
+        </ol>
+    </div>
+    {{end}}
     <h3>Summary</h3>
     <ul>
     {{range .}}
-        {{if .Available}}
-        <li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Available!</li>
-        {{else}}
-        <li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Registered since {{(parseTime .DomainInfo.CreatedDate).Format "Mon Jan 2 2006" }}</li>
+        {{if not .Error}}
+            {{if .Available}}
+            <li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Available!</li>
+            {{else}}
+            <li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Registered since {{(parseTime .DomainInfo.CreatedDate).Format "Mon Jan 2 2006" }}</li>
+            {{end}}
         {{end}}
     {{end}}
     </ul>
     {{range .}}
+    {{if not .Error}}
     <h3 id="{{.DomainName}}">{{.DomainName}}</h3>
     <dl>
         <dt>Fetched</dt>
@@ -50,6 +72,7 @@
     <a href="http://{{.DomainName}}">
         <img src="{{.ScreenshotURL}}" alt="screenshot of {{.DomainName}} as of {{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}">
     </a>
+    {{end}}
     {{end}}
     {{end}}
 </body>
