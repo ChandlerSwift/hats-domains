@@ -17,6 +17,7 @@
 </head>
 <body>
     <h1>{n}hats.com domains</h1>
+    <p><em>Last updated {{(index . 0).FetchTime.Format "Jan 2, 2006" }}</em></p>
     {{ $errors := false -}}
     {{- range . -}}
         {{- with .Error -}}
