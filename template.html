@@ -31,9 +31,9 @@
     <dl>
         <dt>Fetched</dt>
         <dd>{{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}</dd>
+        {{if not .Available}}
         <dt>Owner</dt>
         <dd><a href="mailto:{{.Registrant.Email}}">{{.Registrant.Name}} &lt;{{.Registrant.Email}}&gt</a></dd>
-        {{if not .Available}}
         <dt>Since</dt>
         <dd>{{(parseTime .DomainInfo.CreatedDate).Format "Mon Jan 2 2006" }}</dd>
         {{end}}
