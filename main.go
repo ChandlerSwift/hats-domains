@@ -57,7 +57,7 @@ type HatsSite struct {
 }
 
 func getSite(domainName string, wd selenium.WebDriver) (hatsSite HatsSite) {
-	log.Printf("Retrieving info for %v\n", hatsSite.DomainName)
+	log.Printf("Retrieving info for %v\n", domainName)
 
 	hatsSite.DomainName = domainName
 	hatsSite.FetchTime = time.Now()
