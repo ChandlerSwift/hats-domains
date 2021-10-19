@@ -42,7 +42,7 @@
             {{if .Available}}
             <li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Available!</li>
             {{else}}
-            <li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Registered since {{(parseTime .DomainInfo.CreatedDate).Format "Mon Jan 2 2006" }}</li>
+            <li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Registered since {{(parseTime .DomainInfo.CreatedDate).Format "Jan 2, 2006" }}</li>
             {{end}}
         {{end}}
     {{end}}
@@ -52,12 +52,12 @@
     <h3 id="{{.DomainName}}">{{.DomainName}}</h3>
     <dl>
         <dt>Fetched</dt>
-        <dd>{{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}</dd>
+        <dd>{{.FetchTime.Format "Jan 2, 2006 15:04:05 -0700" }}</dd>
         {{if not .Available}}
         <dt>Owner</dt>
         <dd><a href="mailto:{{.Registrant.Email}}">{{.Registrant.Name}} &lt;{{.Registrant.Email}}&gt</a></dd>
         <dt>Since</dt>
-        <dd>{{(parseTime .DomainInfo.CreatedDate).Format "Mon Jan 2 2006" }}</dd>
+        <dd>{{(parseTime .DomainInfo.CreatedDate).Format "Jan 2, 2006" }}</dd>
         {{end}}
         {{with .Title}}
         <dt>Title</dt>
@@ -70,7 +70,7 @@
     </dl>
     {{if .ScreenshotURL}}
     <a href="http://{{.DomainName}}">
-        <img src="{{.ScreenshotURL}}" alt="screenshot of {{.DomainName}} as of {{.FetchTime.Format "Mon Jan 2 15:04:05 -0700 MST 2006" }}">
+        <img src="{{.ScreenshotURL}}" alt="screenshot of {{.DomainName}} as of {{.FetchTime.Format "Jan 2, 2006 15:04:05 -0700" }}">
     </a>
     {{end}}
     {{end}}
