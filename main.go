@@ -118,12 +118,14 @@ func generateHTML(sites []HatsSite, w io.Writer) error {
 			body { max-width: 800px; font-family: sans-serif; margin: auto; }
 			dt { font-weight: bold; }
 			img { max-width: 100%; }
+			h3 { margin-top: 100px; }
+			* { line-height: 1.5em; }
 		</style>
 	</head>
 	<body>
 		<h1>{n}hats.com domains</h1>
 		<h3>Summary</h3>
-		<ol>
+		<ul>
 		{{range .}}
 			{{if .Available}}
 			<li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Available!</li>
@@ -131,7 +133,7 @@ func generateHTML(sites []HatsSite, w io.Writer) error {
 			<li><a href="#{{.DomainName}}">{{.DomainName}}</a> &ndash; Registered since {{(parseTime .DomainInfo.CreatedDate).Format "Mon Jan 2 2006" }}</li>
 			{{end}}
 		{{end}}
-		</ol>
+		</ul>
 		{{range .}}
 		<h3 id="{{.DomainName}}">{{.DomainName}}</h3>
 		<dl>
