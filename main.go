@@ -33,6 +33,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -51,8 +52,7 @@ type HatsSite struct {
 	Registrant    *whoisparser.Contact
 	ScreenshotURL template.URL
 	Title         string
-	HTTPOpen      bool
-	HTTPSOpen     bool
+	Notes         template.HTML
 }
 
 func getSites(largest int, wd selenium.WebDriver) (sites []HatsSite, err error) {
@@ -81,6 +81,13 @@ func getSites(largest int, wd selenium.WebDriver) (sites []HatsSite, err error) 
 		hatsSite.DomainInfo = result.Domain
 		hatsSite.Registrar = result.Registrar
 		hatsSite.Registrant = result.Registrant
+
+		_, err = net.LookupHost(hatsSite.DomainName)
+		if err != nil {
+			hatsSite.Notes = template.HTML(fmt.Sprintf("DNS Error: <code>%v</code>", err.Error()))
+			sites = append(sites, hatsSite)
+			continue
+		}
 
 		// Get web page, take screenshot
 		err = wd.Get(fmt.Sprintf("http://%v/", hatsSite.DomainName))
