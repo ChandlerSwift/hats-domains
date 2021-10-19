@@ -72,6 +72,7 @@ func getSites(largest int, wd selenium.WebDriver) (sites []HatsSite, err error) 
 		result, err := whoisparser.Parse(query_result)
 		if err == whoisparser.ErrNotFoundDomain {
 			hatsSite.Available = true
+			hatsSite.Notes = template.HTML(fmt.Sprintf("Register at <a href='https://www.namecheap.com/domains/registration/results/?domain=%v'>NameCheap</a>", hatsSite.DomainName))
 			sites = append(sites, hatsSite)
 			continue
 		} else if err != nil {
