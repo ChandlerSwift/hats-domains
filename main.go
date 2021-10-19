@@ -53,63 +53,74 @@ type HatsSite struct {
 	ScreenshotURL template.URL
 	Title         string
 	Notes         template.HTML
+	Error         template.HTML
 }
 
-func getSites(largest int, wd selenium.WebDriver) (sites []HatsSite, err error) {
-	// TODO: 1hat.com 0hats.com, hats.com; possibly onehat.com, twohats.com, etc
-	for i := 2; i <= largest; i++ {
-		hatsSite := HatsSite{
-			DomainName: fmt.Sprintf("%dhats.com", i),
-			FetchTime:  time.Now(),
-		}
-		log.Printf("Retrieving info for %v\n", hatsSite.DomainName)
+func getSite(domainName string, wd selenium.WebDriver) (hatsSite HatsSite) {
+	log.Printf("Retrieving info for %v\n", hatsSite.DomainName)
 
-		// Check if domain is registered
-		query_result, err := whois.Whois(hatsSite.DomainName)
-		if err != nil {
-			return sites, err
-		}
-		result, err := whoisparser.Parse(query_result)
-		if err == whoisparser.ErrNotFoundDomain {
-			hatsSite.Available = true
-			hatsSite.Notes = template.HTML(fmt.Sprintf("Register at <a href='https://www.namecheap.com/domains/registration/results/?domain=%v'>NameCheap</a>", hatsSite.DomainName))
-			sites = append(sites, hatsSite)
-			continue
-		} else if err != nil {
-			return sites, err
-		}
-		hatsSite.Available = false
-		hatsSite.DomainInfo = result.Domain
-		hatsSite.Registrar = result.Registrar
-		hatsSite.Registrant = result.Registrant
+	hatsSite.DomainName = domainName
+	hatsSite.FetchTime = time.Now()
 
-		_, err = net.LookupHost(hatsSite.DomainName)
-		if err != nil {
-			hatsSite.Notes = template.HTML(fmt.Sprintf("DNS Error: <code>%v</code>", err.Error()))
-			sites = append(sites, hatsSite)
-			continue
-		}
-
-		// Get web page, take screenshot
-		err = wd.Get(fmt.Sprintf("http://%v/", hatsSite.DomainName))
-		if err != nil {
-			return sites, err
-		}
-
-		hatsSite.Title, err = wd.Title()
-		if err != nil {
-			return sites, err
-		}
-
-		screenshot, err := wd.Screenshot()
-		if err != nil {
-			return sites, err
-		}
-		hatsSite.ScreenshotURL = template.URL(fmt.Sprintf("data:image/png;base64,%v", base64.StdEncoding.EncodeToString(screenshot)))
-
-		sites = append(sites, hatsSite)
+	// Check if domain is registered
+	query_result, err := whois.Whois(hatsSite.DomainName)
+	if err != nil {
+		hatsSite.Error = template.HTML(err.Error())
+		return
 	}
-	return sites, nil
+	result, err := whoisparser.Parse(query_result)
+	if err == whoisparser.ErrNotFoundDomain {
+		hatsSite.Available = true
+		hatsSite.Notes = template.HTML(fmt.Sprintf("Register at <a href='https://www.namecheap.com/domains/registration/results/?domain=%v'>NameCheap</a>", hatsSite.DomainName))
+		return
+	} else if err != nil {
+		hatsSite.Error = template.HTML(err.Error())
+		return
+	}
+	hatsSite.Available = false
+	hatsSite.DomainInfo = result.Domain
+	hatsSite.Registrar = result.Registrar
+	hatsSite.Registrant = result.Registrant
+
+	_, err = net.LookupHost(hatsSite.DomainName)
+	if err != nil {
+		hatsSite.Notes = template.HTML(fmt.Sprintf("DNS Error: <code>%v</code>", err.Error()))
+		return
+	}
+
+	// Get web page, take screenshot
+	err = wd.Get(fmt.Sprintf("http://%v/", hatsSite.DomainName))
+	if err != nil {
+		hatsSite.Error = template.HTML(err.Error())
+		return
+	}
+
+	hatsSite.Title, err = wd.Title()
+	if err != nil {
+		hatsSite.Error = template.HTML(err.Error())
+		return
+	}
+
+	screenshot, err := wd.Screenshot()
+	if err != nil {
+		hatsSite.Error = template.HTML(err.Error())
+		return
+	}
+	hatsSite.ScreenshotURL = template.URL(fmt.Sprintf("data:image/png;base64,%v", base64.StdEncoding.EncodeToString(screenshot)))
+	return
+}
+
+func getSites(largest int, wd selenium.WebDriver) (sites []HatsSite) {
+	domains := []string{"0hats.com", "1hat.com"} // Special cases
+	//domains = append(domains, "hats.com", "onehat.com", "twohats.com", "nhats.com") // Possibly more special cases?
+	for i := 2; i <= largest; i++ {
+		domains = append(domains, fmt.Sprintf("%dhats.com", i))
+	}
+
+	for _, domain := range domains {
+		sites = append(sites, getSite(domain, wd))
+	}
+	return sites
 }
 
 //go:embed template.html
@@ -171,11 +182,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		sites, err := getSites(*largest, wd)
-		if err != nil {
-			fmt.Println(err)
-		}
-		err = generateHTML(sites, file)
+		err = generateHTML(getSites(*largest, wd), file)
 		if err != nil {
 			fmt.Println(err)
 		}
