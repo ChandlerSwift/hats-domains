@@ -184,7 +184,7 @@ func main() {
 		}
 		err = generateHTML(getSites(*largest, wd), file)
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
 	}
 }
