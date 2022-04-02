@@ -162,7 +162,9 @@ func main() {
 	}
 	defer service.Stop()
 
-	wd, err := selenium.NewRemote(nil, fmt.Sprintf("http://localhost:%d", geckoDriverPort))
+	wd, err := selenium.NewRemote(selenium.Capabilities{
+		"acceptInsecureCerts": true,
+	}, fmt.Sprintf("http://localhost:%d", geckoDriverPort))
 	if err != nil {
 		panic(err)
 	}
